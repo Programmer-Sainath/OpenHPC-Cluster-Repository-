@@ -39,7 +39,7 @@ The cluster is being developed to support:
 # Software Specifications
 
 ### Category                    Technology 
-### Operating System-            Rocky Linux
+### Operating System-            Rocky Linux 9.8
 ### HPC Distribution-            OpenHPC
 ### Resource Manager-            Slurm
 ### MPI Implementation-          OpenMPI
@@ -58,8 +58,8 @@ The cluster is currently deployed using repurposed desktop hardware provided by 
 ### Active Nodes-                5
 ### Admin Nodes-                 1
 ### Compute Nodes-               4
-### Ethernet Switch-             Cisco Catalyst 3560-cx
-### Operating System-            Rocky Linux
+### Ethernet Switch-             TP-Link Ethernet Switch LS1016G 16-Port
+### Operating System-            Rocky Linux 9.8
 ### HPC Distribution-            OpenHPC
 ### Cluster Management-          Slurm
 ### MPI Implementation-          OpenMPI
@@ -70,7 +70,7 @@ The cluster is currently deployed using repurposed desktop hardware provided by 
 ## Component         Specification 
 
 ### Role-              Cluster Management
-### Operating system-  Rocky Linux
+### Operating system-  Rocky Linux 9.8
 ### Processor-         Intel i5-4460
 ### RAM-               16 GB DDR3
 ### Services-          Slurm Controller, Warewulf, NFS, SSH, OpenHPC Management Services
