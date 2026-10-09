@@ -1,0 +1,138 @@
+20/05/2026
+Creating a Simple sieve of Eratosthenes in python (juypiter library), to find primes up to a range n
+
+____________________________________________________________________________________________________
+import math
+
+# Simple Sieve of Eratosthenes that creates an array of all primes 
+# in a range n and returns the greatest prime in that range n 
+def sieve(n):
+ 
+    # Creates a list of lenth n, and marks all indexes aside from 0 and 1 as True
+    arr = [True for i in range(n+1)]
+    arr[0], arr[1] = False
+
+    # Parses through a range of 2 untill sqrt(n), and treats all values
+    # still marked True in the list as primes. Then it goes through the
+    # range till n and marks all multiple of prime values as False in list arr
+    for i in range(2, int(math.sqrt(n+1))):
+        if arr[i]:
+            for j in range(i**2, n+1, i):
+                arr[j] = False
+
+    # Creates an array of all prime numbers untill n,
+    # taking indexes marked as True as Primes.
+    primes = []
+    for i in range(1, n+1):
+        if arr[i]:
+            primes.append(i)
+    
+    # Returns number of primes in range n, as well as the largest prime:
+    return len(primes), primes[-1]
+
+____________________________________________________________________________________________________
+Time complexity - O(n log log n)
+Space complexity - O(n)
+
+
+
+
+
+21/05/2026
+Used nympy arrays to optomize for large values of n
+
+____________________________________________________________________________________________________
+import math
+import numpy as np
+
+# Simple Sieve of Eratosthenes that creates an array of all primes 
+# in a range n and returns the greatest prime in that range n 
+def sieve(n):
+ 
+    # Creates a list of array n, and marks all indexes aside from 0 and 1 as True
+    arr = np.ones(n+1, dtype=bool)
+    arr[0:2] = False
+
+    # Parses through a range of 2 until sqrt(n), and treats all values
+    # still marked True in the array as primes. Then it goes through the
+    # range till n and marks all multiple of prime values as False in array arr
+    for p in range(2, int(math.sqrt(n)) + 1):
+        if arr[p]:
+            arr[p*p:n+1:p] = False
+
+    # Creates an list of all prime numbers until n
+    primes = np.nonzero(arr)[0].tolist()
+    
+    # Returns number of primes in range n, as well as the largest prime:
+    return len(primes), primes[-1]
+____________________________________________________________________________________________________
+Time complexity - O(n log log n)
+Space complexity - O(n)
+
+
+
+
+
+
+24/05/2026
+Used mutithreading to reduce ram input and increase number of threads used. Rame went from 90%+ to 55% utilization
+____________________________________________________________________________________________________
+import math
+import numpy as np
+from concurrent.futures import ThreadPoolExecutor
+
+#Function to mark multiples of p as false in array arr until range n
+def Set_False(arr, p, n):
+    arr[p*p:n+1:p] = False
+
+def threaded_sieve(n, max_threads):
+
+    # Initializes an array untill value n and marks them True
+    arr = np.ones(n + 1, dtype=bool)
+
+    #Marks all indexes aside from 0 and 1 as False
+    arr[0:2] = False
+
+    #Sets the limit for range
+    high = int(math.sqrt(n)) + 1
+
+    #Initailizes threads according to input passed
+    with ThreadPoolExecutor(max_workers=max_threads) as executor:
+
+        threads = []
+
+        #Marks multiples of p as false and appends them to executor
+        for p in range(2, high):
+            if arr[p]:
+                threads.append(
+                    executor.submit(Set_False, arr, p, n)
+                )
+
+        # Wait for all threads
+        for f in threads:
+            f.result()
+
+    #Creates a list of primes untill n
+    primes = np.flatnonzero(arr).tolist()
+
+    #Returns number of primes and last prime
+    return len(primes), primes[-1]
+____________________________________________________________________________________________________
+Space complexity : O(n)
+Time complexity : O(n log log n)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

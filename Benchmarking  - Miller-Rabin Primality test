@@ -1,0 +1,460 @@
+26/05/2026
+
+Using a modified code to find the average runtime of finding a 1024 bit prime using a 1000 iterations:
+_____________________________________________________________________________________________________
+CODE:-
+import random
+import time
+import timeit
+import numpy as np
+
+# Checks for primality using a miller - rabin test
+def miller_rabin(n, k):
+
+    # Checks for if the number is negative, less than 4 or even. If so, return False
+    if n <= 1:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Turns the input n into 2^r *(d)
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Runs the code k times to reduce false primes to <= 4^-k
+    for i in range(k):
+
+        # Takes a random number a as a witness
+        a = random.randint(2, n - 2)
+
+        # Stores a ^ d % n in x
+        x = pow(a, d, n)
+        
+        # Tests x for the Miller Rabin test
+        if x == 1 or x == n - 1:
+            continue
+
+        # If Miller-Rabin test is failed, sqaures x, r times and if x = n-1, 
+        # returns True. Else it returns False
+        for j in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+            
+    return True
+
+bitsize = 1024
+loopnum = 20
+
+# Generates a random number for which it takes >17ms to test Miller Rabin primility
+def generate_prime_candidate():
+    tim = 10
+    while tim > 0.017: 
+        p = random.getrandbits(bitsize)
+        p |= (1 << (bitsize - 1)) | 1
+
+        start_time = time.perf_counter()
+        miller_rabin(p, 20)
+        end_time = time.perf_counter()
+
+        tim = end_time - start_time 
+    return p
+
+# Passes the random number and tests it for primility, If the number fails,
+# subtracts by 2 to keep it even, and prints the number if it returns prime
+def findprime(loopnum):
+    a = generate_prime_candidate()
+    while True:
+        if miller_rabin(a, loopnum):
+            return a 
+            break
+        a -= 2
+
+times = []
+primes = []
+
+# Runs the code 1000 times to find 1000 primes and their runtime
+for i in range(1000):
+    start = time.perf_counter()
+
+    primes.append(findprime(loopnum))
+
+    elapsed = time.perf_counter() - start
+
+    times.append(elapsed)
+
+    print(i)
+
+times = np.array(times)
+primes = np.array(primes)
+print("Avg time: ", np.average(times))
+print("largest prime: ", np.amax(primes))
+print("Runtime for the largest prime is: ", times[np.argmax(primes)])
+_____________________________________________________________________________________________________
+
+
+FOR 1024 BIT NUMBERS
+*********************************************************
+Total Runtime: 15m 39.6s
+
+Avg Runtime to find a 1024 bit prime: 0.9394519673998002s
+
+Largest prime found: 179768915309801643503810417160524945
+                     045177584882514589785377029766865213
+                     022461096140208448234152566558182754
+                     683972602160444901969319475052725572
+                     649432325944874513923144346119587436
+                     220112515815067194441256715116240254
+                     054156067477646016741142380036227246
+                     523336938179718173344683909231696978
+                     675071036805683749793 (309 digits)
+
+Runtime to find the largest prime: 0.10895900000468828s
+*********************************************************
+
+
+FOR 512 BIT NUMBERS
+*********************************************************
+Total Runtime: 1m 23.4s
+
+Avg Runtime to find a 512 bit prime: 0.0833729708000319s
+
+Largest prime found: 134061969064794905365786539740214474
+                     278517466702714747247720872895351265
+                     545363155665232810868237703641845471
+                     246685847776339132937388853554345304
+                     02637525633 (155 digits)
+
+Runtime to find the largest prime: 0.11410999999498017s
+*********************************************************
+
+
+
+
+
+26/05/2026
+Removed requirement for candidate primes to take >17ms to check for primality
+
+_____________________________________________________________________________________________________
+
+
+CODE:-
+
+import random
+import time
+import timeit
+import numpy as np
+
+# Checks for primality using a miller - rabin test
+def miller_rabin(n, k):
+
+    # Checks for if the number is negative, less than 4 or even. If so, return False
+    if n <= 1:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Turns the input n into 2^r *(d)
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Runs the code k times to reduce false primes to <= 4^-k
+    for i in range(k):
+
+        # Takes a random number a as a witness
+        a = random.randint(2, n - 2)
+
+        # Stores a ^ d % n in x
+        x = pow(a, d, n)
+        
+        # Tests x for the Miller Rabin test
+        if x == 1 or x == n - 1:
+            continue
+
+        # If Miller-Rabin test is failed, sqaures x, r times and if x = n-1, 
+        # returns True. Else it returns False
+        for j in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+            
+    return True
+
+bitsize = 1024
+loopnum = 20
+
+# Generates a random number for which it takes >17ms to test Miller Rabin primility
+def generate_prime_candidate():
+    tim = 10
+    p = random.getrandbits(bitsize)
+    p |= (1 << (bitsize - 1)) | 1
+    while tim > 10: 
+        p = random.getrandbits(bitsize)
+        p |= (1 << (bitsize - 1)) | 1
+
+        start_time = time.perf_counter()
+        miller_rabin(p, 20)
+        end_time = time.perf_counter()
+
+        tim = end_time - start_time 
+    return p
+
+
+# Passes the random number and tests it for primility, If the number fails,
+# subtracts by 2 to keep it even, and prints the number if it returns prime
+def findprime(loopnum):
+    a = generate_prime_candidate()
+    while True:
+        if miller_rabin(a, loopnum):
+            return a 
+            break
+        a -= 2
+
+times = []
+primes = []
+
+# Runs the code 100 times to find 100 primes and their runtime
+for i in range(1000):
+    start = time.perf_counter()
+
+    primes.append(findprime(loopnum))
+
+    elapsed = time.perf_counter() - start
+
+    times.append(elapsed)
+
+    print(i)
+
+times = np.array(times)
+primes = np.array(primes)
+print("Avg time: ", np.average(times))
+print("largest prime: ", np.amax(primes))
+print("Runtime for the largest prime is: ", times[np.argmax(primes)])
+print(len(primes))
+print(primes[1], primes[2], primes[3])
+
+_____________________________________________________________________________________________________
+
+
+FOR 1024 BIT PRIMES
+*********************************************************
+Total Runtime: 14m 50.4s
+
+Avg Runtime to find a 1024 bit prime:  0.8901043336002477s
+
+Largest prime found: 179751917166749427544831022486191507
+                     229359690140465115997401929408679311
+                     752105849578093976094939572292370489
+                     741630296637437223999563946434430662
+                     189926888153158825724194068055037258
+                     442537609293741259165206015543503979
+                     999362300827935473968991940458844449
+                     616876034039681994072541420051244117
+                     913326996654801962851 (309 digits)
+
+Runtime to find the largest prime: 0.21145989999058656s
+
+*********************************************************
+
+
+27/05/2026
+
+Benchmarking multithreaded Miller Rabin Test
+_____________________________________________________________________________________________________
+
+
+CODE:-
+
+import random
+import time
+import timeit
+import numpy as np
+import concurrent.futures
+from loky import get_reusable_executor
+
+# Checks for primality using a miller - rabin test
+def miller_rabin(n, k):
+
+    # Checks for if the number is negative, less than 4 or even. If so, return False
+    if n <= 1:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Turns the input n into 2^r *(d)
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Runs the code k times to reduce false primes to <= 4^-k
+    for i in range(k):
+
+        # Takes a random number a as a witness
+        a = random.randint(2, n - 2)
+
+        # Stores a ^ d % n in x
+        x = pow(a, d, n)
+        
+        # Tests x for the Miller Rabin test
+        if x == 1 or x == n - 1:
+            continue
+
+        # If Miller-Rabin test is failed, sqaures x, r times and if x = n-1, 
+        # returns True. Else it returns False
+        for j in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+            
+    return True
+
+bitsize = 1024
+loopnum = 20
+numthreads = 8
+
+
+# Generates a random number for which it takes >17ms to test Miller Rabin primility
+def generate_prime_candidate():
+    tim = 10
+    p = random.getrandbits(bitsize)
+    p |= (1 << (bitsize - 1)) | 1
+    while tim > 10: 
+        p = random.getrandbits(bitsize)
+        p |= (1 << (bitsize - 1)) | 1
+
+        start_time = time.perf_counter()
+        miller_rabin(p, 20)
+        end_time = time.perf_counter()
+
+        tim = end_time - start_time 
+    return p
+
+
+# Passes the random number and tests it for primility, If the number fails,
+# subtracts by 2 to keep it even, and prints the number if it returns prime
+def findprime(loopnum):
+    a = generate_prime_candidate()
+    while True:
+        if miller_rabin(a, loopnum):
+            return a 
+            break
+        a -= 2
+
+# Finds Primes in parallel with multithreading
+def findprime_parallel(loopnum, num_workers=numthreads):
+
+    # Creates numthreads, threads and assigns each a worker task, terminates all
+    # worker tasks as soon as first prime is found
+    with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers):
+        
+        # To Prevent errors due to abrupt cancellation of threads
+        executor = get_reusable_executor(max_workers=num_workers)
+
+        # Creates a list futures with numthreads number of threads
+        futures = {executor.submit(findprime, loopnum) for x in range(num_workers)}
+
+        # Finds the first thread to find a prime
+        done, pending = concurrent.futures.wait(futures, return_when= concurrent.futures.FIRST_COMPLETED)
+        
+        # Cancel remaining threads
+        for f in pending:
+            f.cancel()
+    
+        return done.pop().result()
+
+
+def find_n_primes(n, loopnum, num_workers=numthreads):
+    executor = get_reusable_executor(max_workers=num_workers)
+    futures = [executor.submit(findprime, loopnum) for _ in range(n)]
+    return [f.result() for f in concurrent.futures.as_completed(futures)]
+
+import time
+t0 = time.perf_counter()
+primes = find_n_primes(1000, loopnum, num_workers=numthreads)
+t1 = time.perf_counter()
+
+primes = np.array(primes)
+
+print("Largest prime: ", np.amax(primes))
+print("Time: ", t1-t0)
+print("Average: ", (t1 - t0) / len(primes))
+
+_____________________________________________________________________________________________________
+
+
+FOR 1024 BIT PRIMES USING 6 CORES
+*********************************************************
+Total Runtime: 4m 2.9s
+
+Avg Runtime to find a 1024 bit prime:  0.24294904450001195s
+
+Largest prime found: 179664258368296306247517185895528527969723126870660455201660630772912777575286734890327931304023475605576064296390787400932450364144451654330713674184041120383175418895972145932538767829151787507949736185199458453482418837545873360127651341122829471544676696699207655990551960199121451352643759171004743735867
+
+*********************************************************
+
+
+
+FOR 1024 BIT PRIMES USING 8 CORES
+*********************************************************
+Total Runtime: 3m 2.5s
+
+Avg Runtime to find a 1024 bit prime:  0.1825450373000058s
+
+Largest prime found: 179543326065678252045696154800153069621159346102110503245456901484039508915779577009061599745976044880479110053634151632562719897331998469594168722292772337876177791847393485436406818959834222727224208187058288665744184390812622698625202343964703713116794217339039055079451335376065804432256915305067606742659
+
+*********************************************************
+
+
+
+FOR 1024 BIT PRIMES USING 10 CORES
+*********************************************************
+Total Runtime: 2m 45.9s
+
+Avg Runtime to find a 1024 bit prime:  0.16590022720000708s
+
+Largest prime found: 179730270541791580212781261361753592399163166668237840971345824834858504621944673418170396289858242824729066789616008976093666886185914665446427296692253986838996573989864502587335975952529411000464069908239936943054637411430692458541999162447607180364918087882351516100731033836054590755497176571390061712021
+
+*********************************************************
+
+
+
+FOR 2048 BIT PRIMES USING 8 CORES
+*********************************************************
+Total Runtime: 38m 0.8s
+
+Avg Runtime to find a 1024 bit prime: 2.2808808877999835s
+
+Largest prime found: 32299923483178235867762728032685364728401036222813860724003007574776269399994307290011313773925761331457758346216610733365990478657718455232430186327460169351204825383927056106372751461029675879538803728642182783132852048997717257671346089349279345473772495359208020948038951433575241795546610543065290128680445051150335726249837691016321715697250922730350037821726409164785771564749516277052884293576783249887528423586760835728625049210433283416968756314319839403536657278155797322455915802263422271856798187899242929921365833071389756938887330226892083622489683626776765379274756805435909032289534746673478857838887
+
+*********************************************************
+
+
+
+FOR 2048 BIT PRIMES USING 10 CORES
+*********************************************************
+Total Runtime: 33m 0.3s
+
+Avg Runtime to find a 1024 bit prime: 1.9803751724000032s
+
+Largest prime found: 32302045665944343987774148681921655607430999624322383793251165479108844086151941562196041728172121850982047973039757942070941157603185936966479678357296058068048809274484176263384317519500263078925372623533657194734273021737249728956321496468836570311205801306307201666575384101376871406598611511309907859426361809574683906890108091520848096938603291268340085599011920934549724407780285385146862216522529605636636268475854855411437066020370453390254515883864269567169593246043460676433446626665524905228386128161035627512443967045970016121922722079902951177195571503933361960983510198493444619839938873640418603637629
+
+*********************************************************
+
+

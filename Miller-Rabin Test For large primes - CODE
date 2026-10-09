@@ -1,0 +1,284 @@
+26/05/2026
+
+Miller-Rabin Test for large primes : https://en.wikipedia.org/wiki/Miller%E2%80%93Rabin_primality_test
+_________________________________________________________________________________________
+import random
+import time
+import timeit
+import numpy as np
+
+# Checks for primality using a miller - rabin test
+def miller_rabin(n, k):
+
+    # Checks for if the number is negative, less than 4 or even. If so, return False
+    if n <= 1:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Turns the input n into 2^r *(d)
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Runs the code k times to reduce false primes to <= 4^-k
+    for i in range(k):
+
+        # Takes a random number a as a witness
+        a = random.randint(2, n - 2)
+
+        # Stores a ^ d % n in x
+        x = pow(a, d, n)
+        
+        # Tests x for the Miller Rabin test
+        if x == 1 or x == n - 1:
+            continue
+
+        # If Miller-Rabin test is failed, sqaures x, r times and if x = n-1, 
+        # returns True. Else it returns False
+        for j in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+            
+    return True
+
+bitsize = 2048
+loopnum = 20
+
+# Generates a random number for which it takes >17ms to test Miller Rabin primility
+def generate_prime_candidate():
+    tim = 10
+    while tim > 0.017: 
+        p = random.getrandbits(bitsize)
+        p |= (1 << (bitsize - 1)) | 1
+
+        start_time = time.perf_counter()
+        miller_rabin(p, 20)
+        end_time = time.perf_counter()
+
+        tim = end_time - start_time 
+    return p
+
+
+# Passes the random number and tests it for primility, If the number fails,
+# subtracts by 2 to keep it even, and prints the number if it returns prime
+def findprime(loopnum):
+    a = generate_prime_candidate()
+    while True:
+        if miller_rabin(a, loopnum):
+            return a 
+        a -= 2
+
+print(findprime(loopnum))
+
+_________________________________________________________________________________________
+
+
+
+
+
+
+26/05/2026
+
+Changed the code slightly eliminating the need for candidate primes to take >17ms to check
+for primality. Runtime for an average sample size of 1000 primes:
+                                                0.9394519673998002s ---> 0.8901043336002477
+
+_________________________________________________________________________________________
+
+CODE:-
+
+import random
+import time
+import timeit
+import numpy as np
+
+# Checks for primality using a miller - rabin test
+def miller_rabin(n, k):
+
+    # Checks for if the number is negative, less than 4 or even. If so, return False
+    if n <= 1:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Turns the input n into 2^r *(d)
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Runs the code k times to reduce false primes to <= 4^-k
+    for i in range(k):
+
+        # Takes a random number a as a witness
+        a = random.randint(2, n - 2)
+
+        # Stores a ^ d % n in x
+        x = pow(a, d, n)
+        
+        # Tests x for the Miller Rabin test
+        if x == 1 or x == n - 1:
+            continue
+
+        # If Miller-Rabin test is failed, sqaures x, r times and if x = n-1, 
+        # returns True. Else it returns False
+        for j in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+            
+    return True
+
+bitsize = 2048
+loopnum = 20
+
+# Generates a random number for which it takes >17ms to test Miller Rabin primility
+def generate_prime_candidate():
+    tim = 10
+    p = random.getrandbits(bitsize)
+    p |= (1 << (bitsize - 1)) | 1
+    while tim > 10: 
+        p = random.getrandbits(bitsize)
+        p |= (1 << (bitsize - 1)) | 1
+
+        start_time = time.perf_counter()
+        miller_rabin(p, 20)
+        end_time = time.perf_counter()
+
+        tim = end_time - start_time 
+    return p
+
+
+# Passes the random number and tests it for primility, If the number fails,
+# subtracts by 2 to keep it even, and prints the number if it returns prime
+def findprime(loopnum):
+    a = generate_prime_candidate()
+    while True:
+        if miller_rabin(a, loopnum):
+            return a 
+        a -= 2
+
+print(findprime(loopnum))
+_________________________________________________________________________________________
+
+27/05/2026
+
+Implemented multithreading for Miller - Rabin test
+_________________________________________________________________________________________
+
+
+import random
+import time
+import timeit
+import numpy as np
+import concurrent.futures
+from loky import get_reusable_executor
+
+# Checks for primality using a miller - rabin test
+def miller_rabin(n, k):
+
+    # Checks for if the number is negative, less than 4 or even. If so, return False
+    if n <= 1:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+
+    # Turns the input n into 2^r *(d)
+    r, d = 0, n - 1
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    # Runs the code k times to reduce false primes to <= 4^-k
+    for i in range(k):
+
+        # Takes a random number a as a witness
+        a = random.randint(2, n - 2)
+
+        # Stores a ^ d % n in x
+        x = pow(a, d, n)
+        
+        # Tests x for the Miller Rabin test
+        if x == 1 or x == n - 1:
+            continue
+
+        # If Miller-Rabin test is failed, sqaures x, r times and if x = n-1, 
+        # returns True. Else it returns False
+        for j in range(r - 1):
+            x = pow(x, 2, n)
+            if x == n - 1:
+                break
+        else:
+            return False
+            
+    return True
+
+bitsize = 1024
+loopnum = 20
+numthreads = 12
+
+# Generates a random number for which it takes >17ms to test Miller Rabin primility
+def generate_prime_candidate():
+    tim = 10
+    p = random.getrandbits(bitsize)
+    p |= (1 << (bitsize - 1)) | 1
+    while tim > 10: 
+        p = random.getrandbits(bitsize)
+        p |= (1 << (bitsize - 1)) | 1
+
+        start_time = time.perf_counter()
+        miller_rabin(p, 20)
+        end_time = time.perf_counter()
+
+        tim = end_time - start_time 
+    return p
+
+
+# Passes the random number and tests it for primility, If the number fails,
+# subtracts by 2 to keep it even, and prints the number if it returns prime
+def findprime(loopnum):
+    a = generate_prime_candidate()
+    while True:
+        if miller_rabin(a, loopnum):
+            return a 
+            break
+        a -= 2
+
+# Finds Primes in parallel with multithreading
+def findprime_parallel(loopnum, num_workers=numthreads):
+
+    # Creates numthreads, threads and assigns each a worker task, terminates all
+    # worker tasks as soon as first prime is found
+    with concurrent.futures.ProcessPoolExecutor(max_workers=num_workers):
+        
+        # To Prevent errors due to abrupt cancellation of threads
+        executor = get_reusable_executor(max_workers=num_workers)
+
+        # Creates a list futures with numthreads number of threads
+        futures = {executor.submit(findprime, loopnum) for x in range(num_workers)}
+
+        # Finds the first thread to find a prime
+        done, pending = concurrent.futures.wait(futures, return_when= concurrent.futures.FIRST_COMPLETED)
+        
+        # Cancel remaining threads
+        for f in pending:
+            f.cancel()
+    
+        return done.pop().result()
+
+_________________________________________________________________________________________
+
+

@@ -1,0 +1,167 @@
+import math
+import os
+import secrets
+
+from dask_jobqueue import SLURMCluster
+from dask.distributed import Client, as_completed
+
+
+BITSIZE = 1024
+MILLER_RABIN_ROUNDS = 20
+
+
+def miller_rabin(n, k=MILLER_RABIN_ROUNDS):
+    if n <= 1:
+        return False
+
+    if n in (2, 3):
+        return True
+
+    if n % 2 == 0:
+        return False
+
+    r = 0
+    d = n - 1
+
+    while d % 2 == 0:
+        r += 1
+        d //= 2
+
+    for _ in range(k):
+        a = secrets.randbelow(n - 3) + 2
+
+        x = pow(a, d, n)
+
+        if x == 1 or x == n - 1:
+            continue
+
+        for _ in range(r - 1):
+            x = pow(x, 2, n)
+
+            if x == n - 1:
+                break
+        else:
+            return False
+
+    return True
+
+
+def generate_prime_candidate():
+    p = secrets.randbits(BITSIZE)
+
+    # Make it a BITSIZE-bit odd integer
+    p |= (1 << (BITSIZE - 1))
+    p |= 1
+
+    return p
+
+
+def findprime(rounds=MILLER_RABIN_ROUNDS):
+    while True:
+        p = generate_prime_candidate()
+
+        # Test successive odd numbers
+        while not miller_rabin(p, rounds):
+            p += 2
+
+        return p
+
+
+def generate_keypair():
+    cluster = SLURMCluster(
+        cores=1,
+        processes=1,
+        memory="2GB",
+        walltime="00:30:00",
+    )
+
+    # Number of SLURM jobs
+    cluster.scale(jobs=8)
+
+    client = Client(cluster)
+
+    print(client)
+
+    futures = [
+        client.submit(findprime)
+        for _ in range(8)
+    ]
+
+    primes = []
+
+    try:
+        for future in as_completed(futures):
+            p = future.result()
+
+            print(f"Prime found: {p}")
+
+            primes.append(p)
+
+            # We only need two different primes
+            if len(primes) == 2:
+                break
+
+    finally:
+        for future in futures:
+            future.cancel()
+
+        client.close()
+        cluster.close()
+
+    p, q = primes
+
+    n = p * q
+    phi = (p - 1) * (q - 1)
+
+    e = 65537
+
+    if math.gcd(e, phi) != 1:
+        raise ValueError("e is not coprime with phi")
+
+    d = pow(e, -1, phi)
+
+    public_key = (n, e)
+    private_key = (n, d)
+
+    return public_key, private_key
+
+
+def encrypt(message, public_key):
+    n, e = public_key
+
+    m = int.from_bytes(message.encode(), "big")
+
+    if m >= n:
+        raise ValueError("Message too large for RSA modulus")
+
+    return pow(m, e, n)
+
+
+def decrypt(ciphertext, private_key):
+    n, d = private_key
+
+    m = pow(ciphertext, d, n)
+
+    length = (m.bit_length() + 7) // 8
+
+    return m.to_bytes(length, "big").decode()
+
+
+if __name__ == "__main__":
+    message = "message"
+
+    public_key, private_key = generate_keypair()
+
+    print("Public Key:")
+    print(public_key)
+
+    print("\nPrivate Key:")
+    print(private_key)
+
+    cipher_text = encrypt(message, public_key)
+
+    print(f"\nEncrypted {message} to {cipher_text}")
+
+    text = decrypt(cipher_text, private_key)
+
+    print(f"Decrypted {cipher_text} to {text}")
