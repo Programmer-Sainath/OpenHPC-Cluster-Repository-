@@ -1,0 +1,6 @@
+1. This is a small-scale visual representaion of how a blackhole would look like but actual cinematic blackhole simulations 
+require a supercomputer (HPC-cluster) and more complex code
+This small-scale simulation lacks the following:
+ 1. proper gravtitational lensing based on Einstein's field equations
+ 2. A 3D spacetime environment (Note that this simulation is in 2d)
+ 3. Doesn't follow the theory of General Relativity 
