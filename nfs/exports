@@ -1,0 +1,4 @@
+# NFS exports recorded from the cluster build.
+
+/home 192.168.10.0/24(rw,sync,no_root_squash,no_subtree_check)
+/opt  192.168.10.0/24(ro,sync,no_root_squash,no_subtree_check)
