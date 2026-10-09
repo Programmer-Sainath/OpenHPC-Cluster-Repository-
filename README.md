@@ -1,10 +1,8 @@
 # OpenHPC Cluster Infrastructure
 
-> A student-led High Performance Computing (HPC) project built using repurposed desktop hardware, Rocky Linux 9, and the OpenHPC software ecosystem.
->
-> The project focuses on cluster infrastructure, node provisioning, workload scheduling, networking, shared storage, and parallel computing.
->
-> Developed as a long-term educational resource, it aims to make practical scientific computing and HPC system administration more accessible within a school environment.
+ A student-led High Performance Computing (HPC) project built using repurposed desktop hardware, Rocky Linux 9, and the OpenHPC software ecosystem.
+ The project focuses on cluster infrastructure, node provisioning, workload scheduling, networking, shared storage, and parallel computing.
+ Developed as a long-term educational resource, it aims to make practical scientific computing and HPC system administration more accessible within a school environment.
 
 ---
 
