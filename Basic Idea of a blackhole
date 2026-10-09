@@ -1,0 +1,10 @@
+This project is a cinematic black hole simulation built using Python and Pygame.
+It visualizes:
+
+gravitational lensing
+an accretion disk
+a photon ring
+warped background stars
+and the event horizon of a black hole
+
+The simulation is inspired by astrophysics visualizations such as those seen in Interstellar.

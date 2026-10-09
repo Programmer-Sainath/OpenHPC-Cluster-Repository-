@@ -1,0 +1,31 @@
+
+# Finding the digits of pi using Chudnovsky algorithm
+
+from decimal import Decimal, getcontext
+
+#input number of digits of pi to calculate
+n = 200000
+
+def chudnovsky_pi(digits):
+    getcontext().prec = digits + 20
+
+    C = 426880 * Decimal(10005).sqrt()
+
+    M = 1
+    L = 13591409
+    X = 1
+    K = 6
+    S = Decimal(L)
+
+    for i in range(1, digits // 14 + 1):
+        M = (M * (K**3 - 16*K)) // (i**3)
+        L += 545140134
+        X *= -262537412640768000
+        S += Decimal(M * L) / X
+        K += 12
+
+    return C / S
+
+
+result = chudnovsky_pi(n)
+print(result)

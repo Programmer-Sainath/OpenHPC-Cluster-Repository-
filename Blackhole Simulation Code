@@ -1,0 +1,137 @@
+import pygame
+import random
+import math
+
+pygame.init()
+
+# screen setup
+WIDTH, HEIGHT = 1000, 700
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Cinematic Black Hole Simulation")
+
+clock = pygame.time.Clock()
+
+# black hole center position
+cx, cy = WIDTH // 2, HEIGHT // 2
+
+BLACK = (0, 0, 0)
+
+# generate random background stars
+stars = []
+for _ in range(1500):
+    stars.append([
+        random.randint(0, WIDTH),
+        random.randint(0, HEIGHT)
+    ])
+
+# accretion disk particles: [angle, radius, angular speed]
+disk = []
+for _ in range(1200):
+    angle = random.uniform(0, 2 * math.pi)
+    radius = random.uniform(130, 420)
+
+    # inner particles orbit faster
+    speed = 0.03 + (1 / (radius * 0.015))
+
+    disk.append([angle, radius, speed])
+
+# simulates gravitational lensing
+def lens(x, y):
+    dx = x - cx
+    dy = y - cy
+
+    # distance from black hole center
+    dist = math.sqrt(dx * dx + dy * dy) + 0.001
+
+    # inverse-square gravity style distortion
+    bend = 90000 / (dist * dist)
+
+    angle = math.atan2(dy, dx)
+
+    # apply spacetime distortion near black hole
+    if dist < 550:
+        curve = bend * 0.015
+
+        x += math.cos(angle) * curve
+        y += math.sin(angle) * curve
+
+    return int(x), int(y)
+
+running = True
+t = 0
+
+while running:
+    screen.fill(BLACK)
+
+    # close window event
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    t += 1
+
+    # render warped background stars
+    for sx, sy in stars:
+        lx, ly = lens(sx, sy)
+
+        if 0 <= lx < WIDTH and 0 <= ly < HEIGHT:
+            screen.set_at((lx, ly), (180, 180, 180))
+
+    # render accretion disk
+    for p in disk:
+        angle, radius, speed = p
+
+        # orbital rotation
+        angle += speed * t * 0.015
+
+        # circular orbit coordinates
+        x = cx + radius * math.cos(angle)
+
+        # vertical compression creates 3D disk illusion
+        y = cy + radius * math.sin(angle) * 0.6
+
+        # heat-based coloring
+        heat = max(0, 255 - int(radius * 0.7))
+
+        color = (
+            255,
+            min(255, heat + 100),
+            int(heat * 0.2)
+        )
+
+        pygame.draw.circle(screen, color, (int(x), int(y)), 2)
+
+        # store updated angle
+        p[0] = angle
+
+    # photon ring
+    for r in range(85, 145):
+        intensity = max(0, 255 - abs(r - 115) * 8)
+
+        pygame.draw.circle(
+            screen,
+            (255, intensity, 80),
+            (cx, cy),
+            r,
+            1
+        )
+
+    # event horizon
+    pygame.draw.circle(screen, (0, 0, 0), (cx, cy), 75)
+
+    # glowing edge around event horizon
+    for i in range(5):
+        pygame.draw.circle(
+            screen,
+            (255, 200, 120),
+            (cx, cy),
+            75 + i,
+            1
+        )
+
+    pygame.display.flip()
+
+    # cap at 60 FPS
+    clock.tick(60)
+
+pygame.quit()
